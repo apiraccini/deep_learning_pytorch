@@ -55,10 +55,17 @@ def plot_history(log, fig_height=6):
 
     for i, ax in enumerate(axs.ravel()):
 
-        metric = 'loss' if i==0 else 'acc'
-        metric_name = 'cross entropy' if i==0 else 'accuracy'
-        yt = np.array(log[metric]['train'])
-        yv = np.array(log[metric]['val'])
+        if i==0:
+            metric='loss'
+            metric_name = 'cross entropy'
+            yt = np.array(log[metric]['train'])
+            yv = np.array(log[metric]['val'])
+        else:
+            metric='acc'
+            metric_name = 'accuracy'
+            yt = np.stack([h.cpu().numpy() for h in log[metric]['train']])
+            yv = np.stack([h.cpu().numpy() for h in log[metric]['val']])
+        
         x = list(range(1, len(yv)+1))
         plotdata = pd.melt(pd.DataFrame({'epoch':x, 'train':yt, 'val':yv}), id_vars='epoch', value_name=metric, var_name='phase')
         
@@ -69,23 +76,25 @@ def plot_history(log, fig_height=6):
     #fig.suptitle(f'{model.__class__.__name__}', fontsize=18)
 
 
-def compare_models(models_dict, phase='val', metric='acc', fig_height = 6):
+def plot_models(models_dict, phase='val', metric='acc', fig_height = 6):
 
     '''
-    Given a model dictionary with model and logs, plot metric of interest
+    Given a model dictionary with models and logs, plot metric of interest
     on epochs for every model
     '''
 
     d = pd.DataFrame()
     for k, v in models_dict.items():
-        d[str(k)] = v[1][metric][phase]
+        if metric=='acc':
+            d[str(k)] = np.stack([h.cpu().numpy() for h in v[1][metric][phase]])
+        else:
+            d[str(k)] = v[1][metric][phase]
 
     d['epoch'] = list(range(1, len(d)+1))
     metric_name = 'cross entropy' if metric=='loss' else 'accuracy'
     plotdata = pd.melt(d, id_vars='epoch', value_name=metric_name, var_name='model')
     
     fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(1.618*fig_height, fig_height))
-    
     sns.lineplot(ax=ax, x='epoch', y=metric_name,
                  hue='model', data=plotdata,
                  palette=sns.color_palette('Dark2')[0:(len(d.columns)-1)])

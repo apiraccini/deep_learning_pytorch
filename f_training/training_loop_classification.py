@@ -10,11 +10,12 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 # training function
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     '''
-    Custom training loop for classification
+    trains the model, and returns the model with best accuracy and history 
+    for loss and accuracy in both training and validation set
     '''
     
     modelname = model.__class__.__name__
-    start = time.time()
+    start = datetime.now()
 
     loss_history = {'train': [], 'val': []}
     acc_history = {'train': [], 'val': []}
@@ -23,12 +24,11 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     best_acc = 0.0
 
     print(f'Training model {modelname}')
-    print(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), '\n')
-    print('*'*120, '\n')
+    print(start.strftime("%d/%m/%Y %H:%M:%S"), '\n')
+    print('*'*110, '\n')
 
     for epoch in range(1, num_epochs+1):
         
-        start2 = time.time()
         epoch_loss_dict = dict()
         epoch_acc_dict = dict()
 
@@ -77,7 +77,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
             epoch_acc_dict[phase] = epoch_acc
 
             loss_history[phase].append(epoch_loss)
-            acc_history[phase].append(epoch_acc.cpu().item())
+            acc_history[phase].append(epoch_acc)
 
             # check for best model
             if phase == 'val' and epoch_acc > best_acc:
@@ -85,17 +85,18 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
                 best_model_wts = copy.deepcopy(model.state_dict())
 
         # end of epoch
-        nowtime = datetime.datetime.now().strftime("%H:%M:%S")
+        nowtime = datetime.now().strftime("%H:%M:%S")
         if epoch < 4 or epoch % 10 == 0:
             msg_loss = f"train_loss: {epoch_loss_dict['train']:.4f}  valid_loss: {epoch_loss_dict['val']:.4f}"
             msg_acc = f"train_acc: {epoch_acc_dict['train']:.4f}  valid_acc: {epoch_acc_dict['val']:.4f}"
             print(f'epoch {epoch}/{num_epochs}\t{msg_loss}  {msg_acc}   {nowtime}')
 
     # end of training
-    time_elapsed = time.time() - start
+    time_elapsed = datetime.now() - start
+    time_elapsed_msg = str(time_elapsed).split('.')[0]
     print()
-    print('*'*120)
-    print(f'\n{modelname} training completed in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+    print('*'*110)
+    print(f'\n{modelname} training completed in ', time_elapsed_msg)
     print(f'Best validation Acc: {best_acc:4f}')
 
     # load best model weights
