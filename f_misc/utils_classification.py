@@ -1,4 +1,15 @@
+# imports
+import numpy as np
+import pandas as pd
 
+from matplotlib import pyplot as plt
+import seaborn as sns
+sns.set_style('darkgrid')
+
+import torch
+
+torch.set_printoptions(edgeitems=2)
+torch.manual_seed(42)
 
 
 def show(imgs):
