@@ -1,4 +1,4 @@
-# Deep learning - PyTorch
+# deeplearning_pytorch
 
 This repository contains notebooks I use to exercise with deep learning using PyTorch. The focus here is on computer vision, in particular on classification tasks. Some contents are :
 
